@@ -4,7 +4,6 @@ const fetch = require("node-fetch");
 const app = express();
 app.use(express.json());
 
-// 🔒 Put your Discord webhook URL in an environment variable
 const WEBHOOK_URL = process.env.WEBHOOK_URL;
 
 app.post("/send", async (req, res) => {
@@ -12,14 +11,38 @@ app.post("/send", async (req, res) => {
 
     const payload = {
         content: "@everyone",
-        embeds: [
+        flags: 32768,
+        components: [
             {
-                title: `# 🏷️ [${mutation}] ${name}`,
-                description: `## 💸 Generation: $${gen}`,
-                color: 16711685,
-                fields: [
-                    { name: "🐾 Other Brainrots", value: "```None```" },
-                    { name: "Timestamp", value: `<t:${Math.floor(Date.now()/1000)}:f>` }
+                type: 10,
+                content: "Meowl Notifier: Test Log"
+            },
+            {
+                type: 17,
+                accent_color: 16711685,
+                components: [
+                    { type: 10, content: "# Meowl Notifier" },
+                    { type: 14 },
+                    {
+                        type: 9,
+                        components: [
+                            {
+                                type: 10,
+                                content: `# 🏷️ [${mutation}] ${name}\n## 💸 Generation: $${gen}\n`
+                            }
+                        ],
+                        accessory: {
+                            type: 11,
+                            media: { url: "attachment://unknown.png" } // optional
+                        }
+                    },
+                    { type: 14 },
+                    { type: 10, content: "🐾 **Other Brainrots**" },
+                    { type: 10, content: "```None```" },
+                    {
+                        type: 10,
+                        content: `Meowl Notifier | <t:${Math.floor(Date.now()/1000)}:f>`
+                    }
                 ]
             }
         ]
@@ -31,7 +54,7 @@ app.post("/send", async (req, res) => {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
         });
-        res.send("Sent via webhook!");
+        res.send("Sent via webhook with components!");
     } catch (err) {
         console.error(err);
         res.status(500).send("Failed to send message");

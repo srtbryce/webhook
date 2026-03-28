@@ -1,10 +1,11 @@
-const express = require("express");
+import express from "express";
+import { V2ComponentBuilder, V2TextDisplayBuilder } from "v2componentsbuilder";
 
 const app = express();
 app.use(express.json());
 
-const TOKEN = process.env.TOKEN; // Bot token
-const CHANNEL_ID = process.env.CHANNEL_ID; // Channel to send in
+const TOKEN = process.env.TOKEN;
+const CHANNEL_ID = process.env.CHANNEL_ID;
 
 app.post("/send", async (req, res) => {
     try {
@@ -14,49 +15,23 @@ app.post("/send", async (req, res) => {
             return res.status(500).send("Missing TOKEN or CHANNEL_ID");
         }
 
+        // 🧪 Build Components V2
+        const components = new V2ComponentBuilder().addComponents([
+            new V2TextDisplayBuilder("Meowl Notifier: Test Log"),
+
+            new V2TextDisplayBuilder(
+                `# 🐱 Meowl Notifier\n\n` +
+                `🏷️ **[${mutation}] ${name}**\n` +
+                `💸 Generation: $${gen}\n\n` +
+                `🐾 **Other Brainrots**\n` +
+                "```None```\n\n" +
+                `Meowl Notifier | <t:${Math.floor(Date.now()/1000)}:f>`
+            )
+        ]);
+
         const payload = {
             content: "@everyone",
-            components: [
-                {
-                    type: 10,
-                    content: "Meowl Notifier: Test Log"
-                },
-                {
-                    type: 17,
-                    accent_color: 16711685,
-                    components: [
-                        {
-                            type: 10,
-                            content: "# 🐱 Meowl Notifier"
-                        },
-                        { type: 14 },
-                        {
-                            type: 9,
-                            components: [
-                                {
-                                    type: 10,
-                                    content:
-                                        `# 🏷️ [${mutation}] ${name}\n` +
-                                        `## 💸 Generation: $${gen}`
-                                }
-                            ]
-                        },
-                        { type: 14 },
-                        {
-                            type: 10,
-                            content: "🐾 **Other Brainrots**"
-                        },
-                        {
-                            type: 10,
-                            content: "```None```"
-                        },
-                        {
-                            type: 10,
-                            content: `Meowl Notifier | <t:${Math.floor(Date.now()/1000)}:f>`
-                        }
-                    ]
-                }
-            ]
+            components: components.toJSON().components
         };
 
         const response = await fetch(
@@ -73,14 +48,11 @@ app.post("/send", async (req, res) => {
 
         const text = await response.text();
 
-        console.log("Discord status:", response.status);
-        console.log("Discord response:", text);
+        console.log("Status:", response.status);
+        console.log("Response:", text);
 
-        if (!response.ok) {
-            return res.status(500).send("Discord rejected message");
-        }
+        res.status(response.status).send(text);
 
-        res.send("✅ Sent via bot!");
     } catch (err) {
         console.error(err);
         res.status(500).send("Server error");
@@ -88,5 +60,5 @@ app.post("/send", async (req, res) => {
 });
 
 app.listen(3000, () => {
-    console.log("🤖 Bot server running on port 3000");
+    console.log("🚀 V2 bot server running on port 3000");
 });

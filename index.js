@@ -3,21 +3,19 @@ const express = require("express");
 const app = express();
 app.use(express.json());
 
-const WEBHOOK_URL = process.env.WEBHOOK_URL;
+const TOKEN = process.env.TOKEN; // Bot token
+const CHANNEL_ID = process.env.CHANNEL_ID; // Channel to send in
 
 app.post("/send", async (req, res) => {
     try {
         const { name, gen, mutation } = req.body;
 
-        if (!WEBHOOK_URL) {
-            console.error("Missing WEBHOOK_URL");
-            return res.status(500).send("Webhook not set");
+        if (!TOKEN || !CHANNEL_ID) {
+            return res.status(500).send("Missing TOKEN or CHANNEL_ID");
         }
 
         const payload = {
             content: "@everyone",
-            // ⚠️ sometimes this flag breaks things, try with/without
-            // flags: 32768,
             components: [
                 {
                     type: 10,
@@ -61,21 +59,28 @@ app.post("/send", async (req, res) => {
             ]
         };
 
-        const response = await fetch(WEBHOOK_URL, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(payload)
-        });
+        const response = await fetch(
+            `https://discord.com/api/v10/channels/${CHANNEL_ID}/messages`,
+            {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bot ${TOKEN}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            }
+        );
 
         const text = await response.text();
 
-        console.log("Status:", response.status);
-        console.log("Response:", text);
+        console.log("Discord status:", response.status);
+        console.log("Discord response:", text);
 
-        res.status(response.status).send(text);
+        if (!response.ok) {
+            return res.status(500).send("Discord rejected message");
+        }
 
+        res.send("✅ Sent via bot!");
     } catch (err) {
         console.error(err);
         res.status(500).send("Server error");
@@ -83,5 +88,5 @@ app.post("/send", async (req, res) => {
 });
 
 app.listen(3000, () => {
-    console.log("🚀 Components V2 server running on port 3000");
+    console.log("🤖 Bot server running on port 3000");
 });

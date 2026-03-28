@@ -1,9 +1,14 @@
 {
-  "name": "brainrot-webhook",
+  "name": "discord-v2-bot-server",
   "version": "1.0.0",
+  "description": "Express server sending Discord Components V2 messages",
   "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
   "dependencies": {
     "express": "^4.18.2",
-    "node-fetch": "^2.6.7"
+    "v2componentsbuilder": "^1.0.0"
   }
 }
